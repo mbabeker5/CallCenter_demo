@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 
 export default function CallCenter() {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<Array<{speaker: string, text: string}>>([]);
+  const [messages, setMessages] = useState<Array<{speaker: string, text: string, timestamp: string}>>([]);
+  const [lastCallTranscript, setLastCallTranscript] = useState<Array<{speaker: string, text: string, timestamp: string}>>([]);
 
   const conversation = useConversation({
     onMessage: (message: any) => {
@@ -15,7 +16,8 @@ export default function CallCenter() {
       if (message.message || message.text) {
         const text = message.message || message.text;
         const speaker = message.source === 'user' || message.from === 'user' ? 'You' : 'Andrew';
-        setMessages(prev => [...prev, { speaker, text }]);
+        const timestamp = new Date().toLocaleTimeString();
+        setMessages(prev => [...prev, { speaker, text, timestamp }]);
       }
     }
   });
@@ -34,12 +36,53 @@ export default function CallCenter() {
 
   const endCall = async () => {
     try {
+      // Save current transcript before clearing
+      if (messages.length > 0) {
+        setLastCallTranscript([...messages]);
+      }
+      
       await conversation.endSession();
       setIsConnected(false);
       setMessages([]);
     } catch (error) {
       console.error('Failed to end call:', error);
     }
+  };
+
+  const downloadTranscript = () => {
+    const transcriptToDownload = messages.length > 0 ? messages : lastCallTranscript;
+    
+    if (transcriptToDownload.length === 0) {
+      alert('No transcript available to download.');
+      return;
+    }
+
+    // Create transcript content
+    const transcriptContent = transcriptToDownload
+      .map(msg => `[${msg.timestamp}] ${msg.speaker}: ${msg.text}`)
+      .join('\n');
+
+    // Add header
+    const fullContent = `Andrew Virtual Agent - Call Transcript
+Generated on: ${new Date().toLocaleString()}
+Call Duration: ${transcriptToDownload.length} messages
+================================================
+
+${transcriptContent}
+
+================================================
+End of Transcript`;
+
+    // Create and download file
+    const blob = new Blob([fullContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `andrew-call-transcript-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const OrbVisualizer = () => (
@@ -91,16 +134,24 @@ export default function CallCenter() {
         </div>
 
         {/* Transcript Area */}
-        <div className="bg-gray-50 rounded-lg p-4 h-64 overflow-y-auto mb-6">
+        <div className="bg-gray-50 rounded-lg p-4 h-64 overflow-y-auto mb-4">
           <div className="text-sm text-gray-500 mb-2">Conversation Transcript:</div>
-          {messages.length === 0 ? (
+          {messages.length === 0 && lastCallTranscript.length === 0 ? (
             <div className="text-gray-400 italic">Start a call to see the conversation...</div>
+          ) : messages.length === 0 && lastCallTranscript.length > 0 ? (
+            <>
+              <div className="text-xs text-blue-600 mb-2">Previous call transcript available for download</div>
+              <div className="text-gray-400 italic">Start a new call to see live conversation...</div>
+            </>
           ) : (
             <div className="space-y-2">
               {messages.map((message, index) => (
                 <div key={index} className="flex flex-col">
-                  <span className="font-medium text-xs text-gray-600">{message.speaker}:</span>
-                  <span className="text-gray-800">{message.text}</span>
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-medium text-xs text-gray-600">{message.speaker}:</span>
+                    <span className="text-xs text-gray-400">{message.timestamp}</span>
+                  </div>
+                  <span className="text-gray-800 mt-1">{message.text}</span>
                 </div>
               ))}
             </div>
@@ -108,7 +159,7 @@ export default function CallCenter() {
         </div>
 
         {/* Control Buttons */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-4">
           {!isConnected ? (
             <button
               onClick={startCall}
@@ -134,6 +185,18 @@ export default function CallCenter() {
             </>
           )}
         </div>
+
+        {/* Download Section */}
+        {(messages.length > 0 || lastCallTranscript.length > 0) && (
+          <div className="border-t pt-4 mb-4">
+            <button
+              onClick={downloadTranscript}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              📄 Download Transcript
+            </button>
+          </div>
+        )}
 
         {/* Status */}
         <div className="text-center mt-4">
