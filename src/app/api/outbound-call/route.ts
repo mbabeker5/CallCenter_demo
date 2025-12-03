@@ -92,6 +92,18 @@ export async function POST(request: NextRequest) {
       transcriptLength: formattedTranscript.length,
       agentId: alexAgentId
     });
+    
+    console.log('Formatted transcript being sent to Alex:');
+    console.log('=====================================');
+    console.log(formattedTranscript);
+    console.log('=====================================');
+    
+    console.log('Full payload to ElevenLabs:', {
+      agent_id: alexAgentId,
+      agent_phone_number_id: alexPhoneNumberId,
+      to_number: phoneNumber.replace(/\s+/g, ''),
+      conversation_initiation_client_data: outboundCallPayload.conversation_initiation_client_data
+    });
 
     // Make the API call to ElevenLabs
     const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
@@ -132,7 +144,11 @@ export async function POST(request: NextRequest) {
       caseReference: caseReference,
       callId: result.conversation_id,
       message: 'Follow-up call initiated successfully',
-      transcript: formattedTranscript // For debugging, remove in production
+      debugInfo: {
+        transcriptLength: formattedTranscript.length,
+        transcriptPreview: formattedTranscript.substring(0, 200) + '...',
+        dynamicVariables: outboundCallPayload.conversation_initiation_client_data.dynamic_variables
+      }
     });
 
   } catch (error) {

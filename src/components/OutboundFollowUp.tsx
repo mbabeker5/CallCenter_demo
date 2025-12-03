@@ -70,6 +70,8 @@ export default function OutboundFollowUp({ messages, onCallInitiated }: Outbound
       const result = await response.json();
 
       if (response.ok && result.success) {
+        console.log('Follow-up call debug info:', result.debugInfo);
+        
         setCallStatus({
           status: 'success',
           message: 'Follow-up call initiated successfully!',
