@@ -3,6 +3,9 @@
 import { useConversation } from '@elevenlabs/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { PhoneIcon, PhoneXMarkIcon, MicrophoneIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
+import Orb3D from './Orb3D';
+import AudioVisualizer from './AudioVisualizer';
 
 export default function CallCenter() {
   const [isConnected, setIsConnected] = useState(false);
@@ -85,126 +88,167 @@ End of Transcript`;
     URL.revokeObjectURL(url);
   };
 
-  const OrbVisualizer = () => (
-    <motion.div
-      className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 shadow-lg relative overflow-hidden"
-      animate={conversation.isSpeaking ? {
-        scale: [1, 1.1, 1],
-        opacity: [0.8, 1, 0.8],
-      } : {
-        scale: 1,
-        opacity: isConnected ? 0.8 : 0.4,
-      }}
-      transition={{
-        duration: 1,
-        repeat: conversation.isSpeaking ? Infinity : 0,
-        ease: "easeInOut"
-      }}
-    >
-      <div className="w-full h-full rounded-full bg-gradient-to-tr from-white/30 to-transparent" />
-      {conversation.isSpeaking && (
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-white/60"
-          animate={{
-            scale: [1, 1.5, 2],
-            opacity: [0.6, 0.3, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeOut"
-          }}
-        />
-      )}
-    </motion.div>
-  );
+  const getConnectionStatus = () => {
+    if (conversation.status === 'connecting') return 'Connecting...';
+    if (isConnected && conversation.isSpeaking) return 'Andrew is speaking';
+    if (isConnected) return 'Connected - Listening';
+    return 'Ready to connect';
+  };
+
+  const getStatusColor = () => {
+    if (conversation.status === 'connecting') return 'text-yellow-500';
+    if (isConnected && conversation.isSpeaking) return 'text-green-500';
+    if (isConnected) return 'text-blue-500';
+    return 'text-gray-500';
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 max-w-lg w-full border border-white/20"
+      >
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Andrew Virtual Agent</h1>
-          <p className="text-gray-600">Voice Call Demo</p>
-        </div>
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">Andrew</h1>
+          <p className="text-white/70 text-lg">AI Voice Assistant</p>
+          <div className={`mt-3 text-sm font-medium ${getStatusColor()}`}>
+            {getConnectionStatus()}
+          </div>
+        </motion.div>
 
-        {/* Orb Visualizer */}
-        <div className="flex justify-center mb-8">
-          <OrbVisualizer />
-        </div>
+        {/* 3D Orb Visualizer */}
+        <motion.div 
+          className="mb-8"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Orb3D isSpeaking={conversation.isSpeaking} isConnected={isConnected} />
+        </motion.div>
+
+        {/* Audio Visualizer */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <AudioVisualizer isSpeaking={conversation.isSpeaking} isActive={isConnected} />
+        </motion.div>
 
         {/* Transcript Area */}
-        <div className="bg-gray-50 rounded-lg p-4 h-64 overflow-y-auto mb-4">
-          <div className="text-sm text-gray-500 mb-2">Conversation Transcript:</div>
+        <motion.div 
+          className="bg-white/5 backdrop-blur rounded-2xl p-6 h-64 overflow-y-auto mb-6 border border-white/10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="text-sm text-white/60 mb-4 font-medium">Live Transcript</div>
           {messages.length === 0 && lastCallTranscript.length === 0 ? (
-            <div className="text-gray-400 italic">Start a call to see the conversation...</div>
+            <div className="text-white/40 italic text-center py-8">Start a conversation to see live transcript...</div>
           ) : messages.length === 0 && lastCallTranscript.length > 0 ? (
-            <>
-              <div className="text-xs text-blue-600 mb-2">Previous call transcript available for download</div>
-              <div className="text-gray-400 italic">Start a new call to see live conversation...</div>
-            </>
+            <div className="text-center py-8">
+              <div className="text-sm text-blue-400 mb-2">✓ Previous conversation saved</div>
+              <div className="text-white/40 italic">Ready for new conversation...</div>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {messages.map((message, index) => (
-                <div key={index} className="flex flex-col">
-                  <div className="flex justify-between items-baseline">
-                    <span className="font-medium text-xs text-gray-600">{message.speaker}:</span>
-                    <span className="text-xs text-gray-400">{message.timestamp}</span>
+                <motion.div 
+                  key={index} 
+                  className={`p-3 rounded-lg ${
+                    message.speaker === 'You' 
+                      ? 'bg-blue-500/20 ml-4 border-l-2 border-blue-400' 
+                      : 'bg-green-500/20 mr-4 border-l-2 border-green-400'
+                  }`}
+                  initial={{ opacity: 0, x: message.speaker === 'You' ? 10 : -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className={`font-semibold text-xs ${
+                      message.speaker === 'You' ? 'text-blue-300' : 'text-green-300'
+                    }`}>
+                      {message.speaker}
+                    </span>
+                    <span className="text-xs text-white/40">{message.timestamp}</span>
                   </div>
-                  <span className="text-gray-800 mt-1">{message.text}</span>
-                </div>
+                  <span className="text-white/90 leading-relaxed">{message.text}</span>
+                </motion.div>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Control Buttons */}
-        <div className="flex gap-4 mb-4">
+        <motion.div 
+          className="flex gap-4 mb-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
           {!isConnected ? (
-            <button
+            <motion.button
               onClick={startCall}
               disabled={conversation.status === 'connecting'}
-              className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              className="flex-1 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
+              <PhoneIcon className="w-5 h-5" />
               {conversation.status === 'connecting' ? 'Connecting...' : 'Start Call'}
-            </button>
+            </motion.button>
           ) : (
             <>
-              <button
+              <motion.button
                 onClick={endCall}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                className="flex-1 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
+                <PhoneXMarkIcon className="w-5 h-5" />
                 End Call
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => {/* TODO: Implement mute functionality */}}
-                className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
+                className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl transition-all duration-300 border border-white/20"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Mute
-              </button>
+                <MicrophoneIcon className="w-5 h-5" />
+              </motion.button>
             </>
           )}
-        </div>
+        </motion.div>
 
         {/* Download Section */}
         {(messages.length > 0 || lastCallTranscript.length > 0) && (
-          <div className="border-t pt-4 mb-4">
-            <button
+          <motion.div 
+            className="border-t border-white/10 pt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            <motion.button
               onClick={downloadTranscript}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 border border-white/20"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              📄 Download Transcript
-            </button>
-          </div>
+              <DocumentArrowDownIcon className="w-4 h-4" />
+              Download Transcript
+            </motion.button>
+          </motion.div>
         )}
-
-        {/* Status */}
-        <div className="text-center mt-4">
-          <span className="text-sm text-gray-500">
-            Status: {conversation.status || 'Ready'}
-          </span>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
