@@ -41,6 +41,126 @@ export default function CallCenter() {
     setTestMode(false);
   };
 
+  const parseTranscriptFile = (content: string, filename: string): Array<{speaker: string, text: string, timestamp: string}> => {
+    const messages: Array<{speaker: string, text: string, timestamp: string}> = [];
+    const now = new Date();
+    
+    try {
+      // Try JSON format first
+      if (filename.endsWith('.json')) {
+        const jsonData = JSON.parse(content);
+        if (Array.isArray(jsonData)) {
+          return jsonData.map((item, index) => ({
+            speaker: item.speaker || item.from || item.role || 'Unknown',
+            text: item.text || item.message || item.content || '',
+            timestamp: item.timestamp || new Date(now.getTime() + index * 1000).toLocaleTimeString()
+          }));
+        }
+      }
+      
+      // Parse text format - common transcript formats
+      const lines = content.split('\n').filter(line => line.trim());
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Format: [timestamp] Speaker: Message
+        let timestampMatch = line.match(/^\[([^\]]+)\]\s*(.+)$/);
+        if (timestampMatch) {
+          const [, timestamp, rest] = timestampMatch;
+          const speakerMatch = rest.match(/^([^:]+):\s*(.+)$/);
+          if (speakerMatch) {
+            const [, speaker, text] = speakerMatch;
+            messages.push({ speaker: speaker.trim(), text: text.trim(), timestamp: timestamp.trim() });
+            continue;
+          }
+        }
+        
+        // Format: Speaker: Message (without timestamp)
+        const speakerMatch = line.match(/^([^:]+):\s*(.+)$/);
+        if (speakerMatch) {
+          const [, speaker, text] = speakerMatch;
+          const timestamp = new Date(now.getTime() + i * 30000).toLocaleTimeString();
+          messages.push({ speaker: speaker.trim(), text: text.trim(), timestamp });
+          continue;
+        }
+        
+        // Format: Speaker - Message
+        const dashMatch = line.match(/^([^-]+)-\s*(.+)$/);
+        if (dashMatch) {
+          const [, speaker, text] = dashMatch;
+          const timestamp = new Date(now.getTime() + i * 30000).toLocaleTimeString();
+          messages.push({ speaker: speaker.trim(), text: text.trim(), timestamp });
+          continue;
+        }
+        
+        // Plain text - alternate between speakers
+        const timestamp = new Date(now.getTime() + i * 30000).toLocaleTimeString();
+        const speaker = i % 2 === 0 ? 'Andrew' : 'You';
+        messages.push({ speaker, text: line, timestamp });
+      }
+      
+    } catch (error) {
+      console.error('Error parsing transcript:', error);
+      // Fallback: treat as plain text
+      const lines = content.split('\n').filter(line => line.trim());
+      lines.forEach((line, index) => {
+        if (line.trim()) {
+          const timestamp = new Date(now.getTime() + index * 30000).toLocaleTimeString();
+          const speaker = index % 2 === 0 ? 'Andrew' : 'You';
+          messages.push({ speaker, text: line.trim(), timestamp });
+        }
+      });
+    }
+    
+    return messages;
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        const parsedMessages = parseTranscriptFile(content, file.name);
+        if (parsedMessages.length > 0) {
+          setLastCallTranscript(parsedMessages);
+          setTestMode(true);
+        } else {
+          alert('Could not parse the transcript file. Please check the format.');
+        }
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+  };
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        const parsedMessages = parseTranscriptFile(content, file.name);
+        if (parsedMessages.length > 0) {
+          setLastCallTranscript(parsedMessages);
+          setTestMode(true);
+        } else {
+          alert('Could not parse the transcript file. Please check the format.');
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const conversation = useConversation({
     onMessage: (message: any) => {
       // Handle incoming messages and update transcript
@@ -163,29 +283,57 @@ End of Transcript`;
             className="mb-6"
           >
             <div className="bg-orange-500/10 border border-orange-400/30 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-orange-300 font-medium text-sm">Testing Mode</h4>
-                  <p className="text-orange-200/70 text-xs">Load sample transcript to test follow-up calls</p>
-                </div>
-                <div className="flex gap-2">
-                  {!testMode ? (
+              <h4 className="text-orange-300 font-medium text-sm mb-3">Testing Mode</h4>
+              <p className="text-orange-200/70 text-xs mb-4">Load transcript data to test follow-up calls</p>
+              
+              {!testMode ? (
+                <div className="space-y-3">
+                  {/* File Upload Area */}
+                  <div 
+                    className="border-2 border-dashed border-orange-400/40 rounded-lg p-4 text-center hover:border-orange-400/60 transition-colors"
+                    onDrop={handleFileDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragEnter={(e) => e.preventDefault()}
+                  >
+                    <input
+                      type="file"
+                      accept=".txt,.json,.csv"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="transcript-upload"
+                    />
+                    <label htmlFor="transcript-upload" className="cursor-pointer">
+                      <div className="text-orange-300/80 text-xs mb-1">
+                        📄 Drop your transcript file here or click to browse
+                      </div>
+                      <div className="text-orange-200/50 text-xs">
+                        Supports .txt, .json, .csv formats
+                      </div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex gap-2">
                     <button
                       onClick={generateSampleTranscript}
-                      className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs px-3 py-1 rounded-lg transition-colors border border-orange-400/30"
+                      className="flex-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs px-3 py-2 rounded-lg transition-colors border border-orange-400/30"
                     >
-                      Load Demo Data
+                      Use Built-in Demo Data
                     </button>
-                  ) : (
-                    <button
-                      onClick={clearTestData}
-                      className="bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs px-3 py-1 rounded-lg transition-colors border border-red-400/30"
-                    >
-                      Clear Demo Data
-                    </button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="text-orange-200/80 text-xs">
+                    ✅ Transcript loaded ({lastCallTranscript.length} messages)
+                  </div>
+                  <button
+                    onClick={clearTestData}
+                    className="bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs px-3 py-1 rounded-lg transition-colors border border-red-400/30"
+                  >
+                    Clear Data
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
