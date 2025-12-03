@@ -16,12 +16,12 @@ export default function CallCenter() {
 
   const generateSampleTranscript = () => {
     const sampleMessages = [
-      { speaker: 'Andrew', text: 'Hello, this is Andrew from the Lydra AI drug safety team. How can I help you today?', timestamp: '2:30:15 PM' },
+      { speaker: 'Andrew', text: 'Hello, this is Andrew from the drug safety team. How can I help you today?', timestamp: '2:30:15 PM' },
       { speaker: 'You', text: 'Hi, I\'m calling about my medication. I\'ve been experiencing some side effects.', timestamp: '2:30:25 PM' },
       { speaker: 'Andrew', text: 'I\'m sorry to hear you\'re experiencing side effects. Let me gather some information to help. Can I get your name and phone number first?', timestamp: '2:30:35 PM' },
       { speaker: 'You', text: 'Yes, my name is Sarah Johnson and my phone number is 555-123-4567.', timestamp: '2:30:45 PM' },
       { speaker: 'Andrew', text: 'Thank you, Sarah. Can you tell me which medication you\'re reporting about?', timestamp: '2:30:55 PM' },
-      { speaker: 'You', text: 'I\'m taking Lisinopril 10mg once daily for my blood pressure. I started it about two weeks ago.', timestamp: '2:31:05 PM' },
+      { speaker: 'You', text: 'I\'m taking my blood pressure medication, 10mg once daily. I started it about two weeks ago.', timestamp: '2:31:05 PM' },
       { speaker: 'Andrew', text: 'I see. What side effects are you experiencing and when did they start?', timestamp: '2:31:15 PM' },
       { speaker: 'You', text: 'I\'ve been having a persistent dry cough that started about a week after I began taking the medication. It\'s gotten worse over the past few days.', timestamp: '2:31:25 PM' },
       { speaker: 'Andrew', text: 'That\'s important information. Has this cough affected your daily activities or sleep?', timestamp: '2:31:35 PM' },

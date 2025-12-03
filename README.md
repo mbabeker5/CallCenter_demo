@@ -2,6 +2,8 @@
 
 A high-quality web interface to demo "Andrew", a specialized Pharmacovigilance Virtual Agent powered by Lydra AI. This is a "Web Call" application where users can speak to the agent via their browser microphone for pharmacovigilance-related inquiries.
 
+**Multi-Company Solution**: This call center platform is designed to handle adverse event reports for multiple pharmaceutical companies and various drug products, providing a generalizable pharmacovigilance workflow.
+
 ## Features
 
 - **Voice Conversation**: Real-time WebRTC voice calls with the AI agent
