@@ -118,7 +118,8 @@ End of Transcript`;
           transition={{ delay: 0.2 }}
         >
           <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">Andrew</h1>
-          <p className="text-white/70 text-lg">AI Voice Assistant</p>
+          <p className="text-white/70 text-lg">Pharmacovigilance Virtual Agent</p>
+          <p className="text-white/50 text-sm">by Lydra AI</p>
           <div className={`mt-3 text-sm font-medium ${getStatusColor()}`}>
             {getConnectionStatus()}
           </div>

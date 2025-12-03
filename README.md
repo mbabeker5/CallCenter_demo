@@ -1,6 +1,6 @@
-# Andrew Virtual Agent - Call Center Demo
+# Andrew - Pharmacovigilance Virtual Agent by Lydra AI
 
-A high-quality web interface to demo the "Andrew" Intelligent Virtual Agent. This is a "Web Call" application where users can speak to the agent via their browser microphone.
+A high-quality web interface to demo "Andrew", a specialized Pharmacovigilance Virtual Agent powered by Lydra AI. This is a "Web Call" application where users can speak to the agent via their browser microphone for pharmacovigilance-related inquiries.
 
 ## Features
 
