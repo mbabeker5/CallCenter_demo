@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { PhoneIcon, PhoneXMarkIcon, MicrophoneIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 import Orb3D from './Orb3D';
 import AudioVisualizer from './AudioVisualizer';
+import OutboundFollowUp from './OutboundFollowUp';
 
 export default function CallCenter() {
   const [isConnected, setIsConnected] = useState(false);
@@ -233,7 +234,7 @@ End of Transcript`;
         {/* Download Section */}
         {(messages.length > 0 || lastCallTranscript.length > 0) && (
           <motion.div 
-            className="border-t border-white/10 pt-6"
+            className="border-t border-white/10 pt-6 mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
@@ -247,6 +248,24 @@ End of Transcript`;
               <DocumentArrowDownIcon className="w-4 h-4" />
               Download Transcript
             </motion.button>
+          </motion.div>
+        )}
+
+        {/* Outbound Follow-Up Section */}
+        {!isConnected && (messages.length > 0 || lastCallTranscript.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="mb-6"
+          >
+            <OutboundFollowUp 
+              messages={messages.length > 0 ? messages : lastCallTranscript}
+              onCallInitiated={(caseRef) => {
+                console.log('Follow-up call initiated:', caseRef);
+                // You can add additional handling here if needed
+              }}
+            />
           </motion.div>
         )}
       </motion.div>
