@@ -12,6 +12,34 @@ export default function CallCenter() {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Array<{speaker: string, text: string, timestamp: string}>>([]);
   const [lastCallTranscript, setLastCallTranscript] = useState<Array<{speaker: string, text: string, timestamp: string}>>([]);
+  const [testMode, setTestMode] = useState(false);
+
+  const generateSampleTranscript = () => {
+    const sampleMessages = [
+      { speaker: 'Andrew', text: 'Hello, this is Andrew from the Lydra AI drug safety team. How can I help you today?', timestamp: '2:30:15 PM' },
+      { speaker: 'You', text: 'Hi, I\'m calling about my medication. I\'ve been experiencing some side effects.', timestamp: '2:30:25 PM' },
+      { speaker: 'Andrew', text: 'I\'m sorry to hear you\'re experiencing side effects. Let me gather some information to help. Can I get your name and phone number first?', timestamp: '2:30:35 PM' },
+      { speaker: 'You', text: 'Yes, my name is Sarah Johnson and my phone number is 555-123-4567.', timestamp: '2:30:45 PM' },
+      { speaker: 'Andrew', text: 'Thank you, Sarah. Can you tell me which medication you\'re reporting about?', timestamp: '2:30:55 PM' },
+      { speaker: 'You', text: 'I\'m taking Lisinopril 10mg once daily for my blood pressure. I started it about two weeks ago.', timestamp: '2:31:05 PM' },
+      { speaker: 'Andrew', text: 'I see. What side effects are you experiencing and when did they start?', timestamp: '2:31:15 PM' },
+      { speaker: 'You', text: 'I\'ve been having a persistent dry cough that started about a week after I began taking the medication. It\'s gotten worse over the past few days.', timestamp: '2:31:25 PM' },
+      { speaker: 'Andrew', text: 'That\'s important information. Has this cough affected your daily activities or sleep?', timestamp: '2:31:35 PM' },
+      { speaker: 'You', text: 'Yes, it\'s been keeping me up at night and it\'s embarrassing during meetings at work.', timestamp: '2:31:45 PM' },
+      { speaker: 'Andrew', text: 'I understand. Have you contacted your doctor about this cough, or taken any other medications for it?', timestamp: '2:31:55 PM' },
+      { speaker: 'You', text: 'Not yet, I wanted to report it first. Should I stop taking the medication?', timestamp: '2:32:05 PM' },
+      { speaker: 'Andrew', text: 'I can\'t provide medical advice, but I recommend contacting your healthcare provider about these symptoms. Thank you for reporting this important safety information.', timestamp: '2:32:15 PM' }
+    ];
+    
+    setLastCallTranscript(sampleMessages);
+    setTestMode(true);
+  };
+
+  const clearTestData = () => {
+    setLastCallTranscript([]);
+    setMessages([]);
+    setTestMode(false);
+  };
 
   const conversation = useConversation({
     onMessage: (message: any) => {
@@ -125,6 +153,42 @@ End of Transcript`;
             {getConnectionStatus()}
           </div>
         </motion.div>
+
+        {/* Testing Mode */}
+        {!isConnected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mb-6"
+          >
+            <div className="bg-orange-500/10 border border-orange-400/30 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-orange-300 font-medium text-sm">Testing Mode</h4>
+                  <p className="text-orange-200/70 text-xs">Load sample transcript to test follow-up calls</p>
+                </div>
+                <div className="flex gap-2">
+                  {!testMode ? (
+                    <button
+                      onClick={generateSampleTranscript}
+                      className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs px-3 py-1 rounded-lg transition-colors border border-orange-400/30"
+                    >
+                      Load Demo Data
+                    </button>
+                  ) : (
+                    <button
+                      onClick={clearTestData}
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs px-3 py-1 rounded-lg transition-colors border border-red-400/30"
+                    >
+                      Clear Demo Data
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* 3D Orb Visualizer */}
         <motion.div 
