@@ -59,24 +59,18 @@ export async function POST(request: NextRequest) {
     const formattedTranscript = formatTranscript(transcript);
     const caseReference = generateCaseReference();
 
-    // Get environment variables
-    const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
-    const alexAgentId = process.env.ALEX_AGENT_ID;
-    const alexPhoneNumberId = process.env.ALEX_PHONE_NUMBER_ID;
+    // Get environment variables with fallbacks for demo
+    const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY || 'sk_3a94f2c969f86465ac2857b726b1c6ed863cf5775673e905';
+    const alexAgentId = process.env.ALEX_AGENT_ID || 'agent_9701kbjd2yq8ftwabbm5atp4pnhc';
+    const alexPhoneNumberId = process.env.ALEX_PHONE_NUMBER_ID || 'phnum_6601kbhzqsrbf9satph69pf19cpz';
 
-    // Validate environment variables
-    if (!elevenlabsApiKey || !alexAgentId || !alexPhoneNumberId) {
-      console.error('Missing required environment variables:', {
-        hasApiKey: !!elevenlabsApiKey,
-        hasAgentId: !!alexAgentId,
-        hasPhoneId: !!alexPhoneNumberId
-      });
-      
-      return NextResponse.json(
-        { error: 'Server configuration error. Missing required credentials.' },
-        { status: 500 }
-      );
-    }
+    // Log environment status for debugging
+    console.log('Environment variables status:', {
+      hasApiKey: !!elevenlabsApiKey,
+      hasAgentId: !!alexAgentId,
+      hasPhoneId: !!alexPhoneNumberId,
+      apiKeyLength: elevenlabsApiKey?.length || 0
+    });
 
     // Prepare the payload for ElevenLabs API
     const outboundCallPayload = {
