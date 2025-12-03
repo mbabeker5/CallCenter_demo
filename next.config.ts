@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Optimized for Vercel Edge/Serverless deployment
+  serverExternalPackages: ['@elevenlabs/react'],
+  // Enable Turbopack for better performance
+  turbopack: {},
 };
 
 export default nextConfig;
